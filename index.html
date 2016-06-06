@@ -75,11 +75,17 @@
       android: document.querySelector('.styler-android')
     };
 
-    var selected = defaultPlatform;
+    var refresh = getParam('refresh').trim().toLowerCase() === 'true';
+    var selectedPlatform = defaultPlatform;
     var onClick = function(platform) {
-      if (platform !== selected) {
-        selected = platform;
-        window.frames[0]._superSecretOns.forcePlatformStyling(platform);
+      if (platform !== selectedPlatform) {
+        selectedPlatform = platform;
+        if (refresh) {
+          document.querySelector('#app-iframe').setAttribute('src', appSrc);
+        } else {
+          window.frames[0]._superSecretOns.forcePlatformStyling(platform);
+        }
+
         Object.keys(styler).forEach(function(p) {
           styler[p].classList.toggle('selected');
           document.querySelector('#mockup').classList.toggle('mockup-' + p);
@@ -89,16 +95,18 @@
 
     // Apply everything when the iframe is ready
     document.querySelector('#app-iframe').onload = function() {
-      window.frames[0]._superSecretOns.platform.select(defaultPlatform);
+      window.frames[0]._superSecretOns.platform.select(selectedPlatform);
 
       window.frames[0].document.body.appendChild(style);
       window.frames[0].document.body.classList.add('hide-scrollbar');
 
-      styler.ios.onclick = onClick.bind(null, 'ios');
-      styler.android.onclick = onClick.bind(null, 'android');
-
-      document.querySelector('#placeholder').remove();
-      document.querySelector('#app-iframe').classList.add('loaded');
+      var placeholder = document.querySelector('#placeholder');
+      if (placeholder) {
+        styler.ios.onclick = onClick.bind(null, 'ios');
+        styler.android.onclick = onClick.bind(null, 'android');
+        placeholder.remove();
+        document.querySelector('#app-iframe').classList.add('loaded');
+      }
     };
 
     // Set source URL
